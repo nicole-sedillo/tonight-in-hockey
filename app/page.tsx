@@ -1,65 +1,163 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+import GameCard from "@/components/GameCard";
+import type { HockeyGame } from "@/types/hockey";
+
+export default function HomePage() {
+  const [games, setGames] = useState<HockeyGame[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedLeague, setSelectedLeague] = useState<"ALL" | "NHL" | "PWHL">("ALL");
+
+  useEffect(() => {
+  async function loadGames() {
+    try {
+      const [nhlRes, pwhlRes] = await Promise.all([
+        fetch("/api/nhl"),
+        fetch("/api/pwhl"),
+      ]);
+
+      const [nhlData, pwhlData] = await Promise.all([
+        nhlRes.json(),
+        pwhlRes.json(),
+      ]);
+
+      setGames([...(nhlData || []), ...(pwhlData || [])]);
+    } catch (error) {
+      console.error("Failed to load games:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  loadGames();
+}, []);
+
+  const filteredGames =
+    selectedLeague === "ALL"
+      ? games
+      : games.filter((game) => game.league === selectedLeague);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-slate-100 p-6 text-slate-900 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/60 via-transparent to-blue-100/20"></div>
+      {/* Center ice faceoff circle */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+        <svg width="1200" height="1200" viewBox="0 0 1200 1200" className="opacity-[0.12]">
+          {/* Outer circle - red */}
+          <circle cx="600" cy="600" r="400" fill="none" stroke="#dc2626" strokeWidth="6"/>
+          {/* Inner faceoff circle */}
+          <circle cx="600" cy="600" r="60" fill="none" stroke="#dc2626" strokeWidth="8"/>
+          {/* Center dot */}
+          <circle cx="600" cy="600" r="30" fill="#dc2626"/>
+          {/* Faceoff hash marks */}
+          <line x1="600" y1="170" x2="600" y2="230" stroke="#dc2626" strokeWidth="6" strokeLinecap="round"/>
+          <line x1="600" y1="970" x2="600" y2="1030" stroke="#dc2626" strokeWidth="6" strokeLinecap="round"/>
+          <line x1="170" y1="600" x2="230" y2="600" stroke="#dc2626" strokeWidth="6" strokeLinecap="round"/>
+          <line x1="970" y1="600" x2="1030" y2="600" stroke="#dc2626" strokeWidth="6" strokeLinecap="round"/>
+        </svg>
+      </div>
+      {/* Ice scratches - subtle and organic */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.08]" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="scratch-pattern" x="0" y="0" width="400" height="400" patternUnits="userSpaceOnUse">
+            <line x1="20" y1="50" x2="180" y2="65" stroke="#475569" strokeWidth="0.8" strokeLinecap="round" opacity="0.6"/>
+            <line x1="100" y1="20" x2="250" y2="45" stroke="#64748b" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+            <line x1="200" y1="80" x2="320" y2="110" stroke="#475569" strokeWidth="0.6" strokeLinecap="round" opacity="0.5"/>
+            <line x1="50" y1="150" x2="140" y2="170" stroke="#64748b" strokeWidth="0.9" strokeLinecap="round" opacity="0.7"/>
+            <line x1="280" y1="30" x2="370" y2="55" stroke="#475569" strokeWidth="1.1" strokeLinecap="round" opacity="0.3"/>
+            <line x1="150" y1="120" x2="280" y2="135" stroke="#64748b" strokeWidth="0.7" strokeLinecap="round" opacity="0.6"/>
+            <line x1="70" y1="200" x2="190" y2="230" stroke="#475569" strokeWidth="1.3" strokeLinecap="round" opacity="0.5"/>
+            <line x1="250" y1="180" x2="340" y2="195" stroke="#64748b" strokeWidth="0.8" strokeLinecap="round" opacity="0.4"/>
+            <line x1="30" y1="280" x2="150" y2="310" stroke="#475569" strokeWidth="1.0" strokeLinecap="round" opacity="0.6"/>
+            <line x1="180" y1="260" x2="300" y2="275" stroke="#64748b" strokeWidth="0.9" strokeLinecap="round" opacity="0.5"/>
+            <line x1="320" y1="220" x2="390" y2="250" stroke="#475569" strokeWidth="0.7" strokeLinecap="round" opacity="0.7"/>
+            <line x1="110" y1="330" x2="200" y2="345" stroke="#64748b" strokeWidth="1.1" strokeLinecap="round" opacity="0.4"/>
+            <line x1="240" y1="310" x2="350" y2="340" stroke="#475569" strokeWidth="0.8" strokeLinecap="round" opacity="0.6"/>
+            <line x1="60" y1="370" x2="170" y2="390" stroke="#64748b" strokeWidth="1.0" strokeLinecap="round" opacity="0.5"/>
+            <line x1="290" y1="360" x2="380" y2="385" stroke="#475569" strokeWidth="0.9" strokeLinecap="round" opacity="0.3"/>
+            <line x1="5" y1="100" x2="85" y2="115" stroke="#64748b" strokeWidth="0.6" strokeLinecap="round" opacity="0.6"/>
+            <line x1="340" y1="140" x2="395" y2="160" stroke="#475569" strokeWidth="0.8" strokeLinecap="round" opacity="0.5"/>
+            <line x1="130" y1="240" x2="220" y2="255" stroke="#64748b" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#scratch-pattern)"/>
+      </svg>
+      <div className="mx-auto max-w-5xl relative z-10">
+        <h1 className="text-5xl font-black tracking-tight text-slate-900 uppercase">Tonight in Hockey</h1>
+        <p className="mt-2 text-slate-600">NHL and PWHL games for today</p>
+        <p className="mt-1 text-sm text-slate-500">
+        {new Date().toLocaleDateString([], {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        })}
+      </p>
+
+        <div className="mt-6 flex gap-2">
+          <button
+            onClick={() => setSelectedLeague("ALL")}
+            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+              selectedLeague === "ALL"
+                ? "bg-slate-900 text-white shadow-md"
+                : "bg-white/60 text-slate-700 hover:bg-white/80"
+            }`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            All
+          </button>
+
+          <button
+            onClick={() => setSelectedLeague("NHL")}
+            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+              selectedLeague === "NHL"
+                ? "bg-slate-900 text-white shadow-md"
+                : "bg-white/60 text-slate-700 hover:bg-white/80"
+            }`}
           >
-            Documentation
-          </a>
+            NHL
+          </button>
+
+          <button
+            onClick={() => setSelectedLeague("PWHL")}
+            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+              selectedLeague === "PWHL"
+                ? "bg-slate-900 text-white shadow-md"
+                : "bg-white/60 text-slate-700 hover:bg-white/80"
+            }`}
+          >
+            PWHL
+          </button>
         </div>
-      </main>
-    </div>
+
+        {loading ? (
+          <div className="mt-8 rounded-2xl border border-slate-300 bg-white/70 backdrop-blur-sm p-6 text-slate-600 shadow-md">
+            Loading games...
+          </div>
+        ) : filteredGames.length === 0 ? (
+          <div className="mt-8 rounded-2xl border border-slate-300 bg-white/70 backdrop-blur-sm p-6 text-slate-600 shadow-md">
+            No games found.
+          </div>
+        ) : (
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            {filteredGames.map((game) => (
+              <GameCard
+                key={game.id}
+                league={game.league}
+                awayTeam={game.awayTeam}
+                homeTeam={game.homeTeam}
+                awayAbbrev={game.awayAbbrev}
+                homeAbbrev={game.homeAbbrev}
+                awayLogo={game.awayLogo}
+                homeLogo={game.homeLogo}
+                time={game.time}
+                status={game.status}
+                awayScore={game.awayScore}
+                homeScore={game.homeScore}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
