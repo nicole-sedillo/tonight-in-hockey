@@ -38,6 +38,13 @@ export default function HomePage() {
       ? games
       : games.filter((game) => game.league === selectedLeague);
 
+  const featuredGame =
+  filteredGames.find((game) => game.status === "Live") || filteredGames[0];
+
+const remainingGames = featuredGame
+  ? filteredGames.filter((game) => game.id !== featuredGame.id)
+  : [];
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-slate-100 p-6 text-slate-900 relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/60 via-transparent to-blue-100/20"></div>
@@ -129,6 +136,43 @@ export default function HomePage() {
           </button>
         </div>
 
+        {!loading && featuredGame ? (
+          <section className="mt-8 rounded-3xl border border-slate-300 bg-white/70 p-6 shadow-md backdrop-blur-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  Best Game Tonight
+                </p>
+                <h2 className="mt-1 text-2xl font-bold text-slate-950">
+                  {featuredGame.awayAbbrev || featuredGame.awayTeam} at{" "}
+                  {featuredGame.homeAbbrev || featuredGame.homeTeam}
+                </h2>
+              </div>
+
+              <span className="rounded-full bg-slate-950 px-3 py-1 text-sm font-medium text-white">
+                {featuredGame.status}
+              </span>
+            </div>
+
+            <GameCard
+              key={`featured-${featuredGame.id}`}
+              league={featuredGame.league}
+              awayTeam={featuredGame.awayTeam}
+              homeTeam={featuredGame.homeTeam}
+              awayAbbrev={featuredGame.awayAbbrev}
+              homeAbbrev={featuredGame.homeAbbrev}
+              awayLogo={featuredGame.awayLogo}
+              homeLogo={featuredGame.homeLogo}
+              time={featuredGame.time}
+              status={featuredGame.status}
+              awayScore={featuredGame.awayScore}
+              homeScore={featuredGame.homeScore}
+              seriesStatus={featuredGame.seriesStatus}
+              seriesGameNumber={featuredGame.seriesGameNumber}
+            />
+          </section>
+        ) : null}
+
         {loading ? (
           <div className="mt-8 rounded-2xl border border-slate-300 bg-white/70 backdrop-blur-sm p-6 text-slate-600 shadow-md">
             Loading games...
@@ -137,9 +181,9 @@ export default function HomePage() {
           <div className="mt-8 rounded-2xl border border-slate-300 bg-white/70 backdrop-blur-sm p-6 text-slate-600 shadow-md">
             No games found.
           </div>
-        ) : (
+        ) : remainingGames.length === 0 ? null : (
           <div className="mt-8 grid gap-4 md:grid-cols-2">
-            {filteredGames.map((game) => (
+            {remainingGames.map((game) => (
               <GameCard
                 key={game.id}
                 league={game.league}
@@ -153,6 +197,8 @@ export default function HomePage() {
                 status={game.status}
                 awayScore={game.awayScore}
                 homeScore={game.homeScore}
+                seriesStatus={game.seriesStatus}
+                seriesGameNumber={game.seriesGameNumber}
               />
             ))}
           </div>

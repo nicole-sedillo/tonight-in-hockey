@@ -12,6 +12,8 @@ type GameCardProps = {
   status: string;
   awayScore?: number;
   homeScore?: number;
+  seriesStatus?: string;
+  seriesGameNumber?: string;
 };
 
 export default function GameCard({
@@ -26,6 +28,8 @@ export default function GameCard({
   status,
   awayScore,
   homeScore,
+  seriesStatus,
+  seriesGameNumber,
 }: GameCardProps) {
   const showScores =
     awayScore !== undefined &&
@@ -95,6 +99,15 @@ export default function GameCard({
     )}
   </div>
 </div>
+
+{seriesStatus ? (
+  <div className="mt-4 rounded-xl bg-slate-100 px-4 py-3 text-sm text-slate-700">
+    <p className="font-semibold">{seriesStatus}</p>
+    {seriesGameNumber ? (
+      <p className="mt-1 text-slate-500">{seriesGameNumber}</p>
+    ) : null}
+  </div>
+) : null}
 
       <div className="mt-4 text-sm text-slate-600">{time}</div>
     </div>

@@ -11,4 +11,7 @@ export type HockeyGame = {
   status: string;
   awayScore?: number;
   homeScore?: number;
+
+  seriesStatus?: string;
+  seriesGameNumber?: string;
 };
