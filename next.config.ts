@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "assets.leaguestat.com",
       },
+      {
+        protocol: "https",
+        hostname: "assets.thepwhl.com",
+      },
     ],
   },
 };

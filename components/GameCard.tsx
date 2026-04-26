@@ -14,6 +14,7 @@ type GameCardProps = {
   homeScore?: number;
   seriesStatus?: string;
   seriesGameNumber?: string;
+  isFavoriteTeamGame?: boolean;
 };
 
 export default function GameCard({
@@ -30,6 +31,7 @@ export default function GameCard({
   homeScore,
   seriesStatus,
   seriesGameNumber,
+  isFavoriteTeamGame,
 }: GameCardProps) {
   const showScores =
     awayScore !== undefined &&
@@ -39,7 +41,13 @@ export default function GameCard({
   const isLive = status.toLowerCase().includes("live") || status.toLowerCase().includes("in progress");
 
   return (
-    <div className="rounded-2xl border border-slate-300 bg-white/70 backdrop-blur-sm p-5 shadow-md">
+    <div
+  className={`rounded-2xl border bg-white/70 p-4 shadow-md backdrop-blur-sm ${
+    isFavoriteTeamGame
+      ? "border-yellow-400 ring-2 ring-yellow-300"
+      : "border-slate-300"
+  }`}
+>
       <div className="flex items-center justify-between">
         <span className={`rounded-full px-3 py-1 text-xs font-medium tracking-wide text-white ${
           league === "NHL" ? "bg-blue-700" : "bg-purple-700"
