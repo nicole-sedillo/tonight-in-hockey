@@ -19,8 +19,8 @@ function formatPwhlStatus(status: string) {
   return "Preview";
 }
 
-export async function getPwhlGames(): Promise<HockeyGame[]> {
-  const today = new Date().toLocaleDateString("en-CA");
+export async function getPwhlGames(date?: string): Promise<HockeyGame[]> {
+  const targetDate = date || new Date().toLocaleDateString("en-CA");
 
   const url =
     `https://lscluster.hockeytech.com/feed/index.php` +
@@ -44,11 +44,11 @@ export async function getPwhlGames(): Promise<HockeyGame[]> {
 
   const allGames = data?.SiteKit?.Scorebar ?? [];
 
-  const todaysGames = allGames.filter((game: any) => game.Date === today);
+  const todaysGames = allGames.filter((game: any) => game.Date === targetDate);
 
   return todaysGames.map((game: any) => ({
     id: String(game.ID),
-    league: "PWHL",
+    league: "PWHL" as const,
     awayTeam: game.VisitorLongName || "Away",
     homeTeam: game.HomeLongName || "Home",
     awayAbbrev: game.VisitorCode || "AWY",
@@ -61,5 +61,7 @@ export async function getPwhlGames(): Promise<HockeyGame[]> {
       game.VisitorGoals !== undefined ? Number(game.VisitorGoals) : undefined,
     homeScore:
       game.HomeGoals !== undefined ? Number(game.HomeGoals) : undefined,
+    goals: [], // PWHL goal tracking not yet implemented
+    broadcasts: [], // PWHL broadcast data not available in API
   }));
 }

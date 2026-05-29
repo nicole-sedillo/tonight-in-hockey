@@ -1,3 +1,19 @@
+export type Goal = {
+  period: string;
+  time: string;
+  team: string;
+  teamAbbrev: string;
+  scorer: string;
+  assists?: string[];
+  strength?: string;
+};
+
+export type Broadcast = {
+  network: string;
+  market: string; // N=National, H=Home, A=Away
+  countryCode: string;
+};
+
 export type HockeyGame = {
   id: string;
   league: "NHL" | "PWHL";
@@ -11,6 +27,8 @@ export type HockeyGame = {
   status: string;
   awayScore?: number;
   homeScore?: number;
+  goals?: Goal[];
+  broadcasts?: Broadcast[];
 
   seriesStatus?: string;
   seriesGameNumber?: string;

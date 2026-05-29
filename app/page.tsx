@@ -83,30 +83,49 @@ export default function HomePage() {
   const [selectedLeague, setSelectedLeague] = useState<"ALL" | "NHL" | "PWHL">("ALL");
   const [favoriteTeam, setFavoriteTeamState] = useState<string | null>(null);
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  const formatDate = (date: Date) => {
+    // Format in local timezone, not UTC
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
-  useEffect(() => {
-    async function loadGames() {
-      try {
-        const [nhlRes, pwhlRes] = await Promise.all([
-          fetch("/api/nhl"),
-          fetch("/api/pwhl"),
-        ]);
+const changeDate = (days: number) => {
+  const newDate = new Date(selectedDate);
+  newDate.setDate(newDate.getDate() + days);
+  setSelectedDate(newDate);
+};
 
-        const [nhlData, pwhlData] = await Promise.all([
-          nhlRes.json(),
-          pwhlRes.json(),
-        ]);
+useEffect(() => {
+  async function loadGames() {
+    try {
+      setLoading(true);
 
-        setGames([...(nhlData || []), ...(pwhlData || [])]);
-      } catch (error) {
-        console.error("Failed to load games:", error);
-      } finally {
-        setLoading(false);
-      }
+      const date = formatDate(selectedDate);
+
+      const [nhlRes, pwhlRes] = await Promise.all([
+        fetch(`/api/nhl?date=${date}`),
+        fetch(`/api/pwhl?date=${date}`),
+      ]);
+
+      const [nhlData, pwhlData] = await Promise.all([
+        nhlRes.json(),
+        pwhlRes.json(),
+      ]);
+
+      setGames([...(nhlData || []), ...(pwhlData || [])]);
+    } catch (error) {
+      console.error("Failed to load games:", error);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    loadGames();
-  }, []);
+  loadGames();
+}, [selectedDate]);
 
   useEffect(() => {
     const savedTeam = getFavoriteTeam();
@@ -201,15 +220,8 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
         <rect width="100%" height="100%" fill="url(#scratch-pattern)"/>
       </svg>
       <div className="mx-auto max-w-5xl relative z-10">
-        <h1 className="text-5xl font-black tracking-tight text-slate-900 uppercase">Tonight in Hockey</h1>
-        <p className="mt-2 text-slate-600">NHL and PWHL games for today</p>
-        <p className="mt-1 text-sm text-slate-500">
-        {new Date().toLocaleDateString([], {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-        })}
-      </p>
+        <h1 className="text-5xl font-black tracking-tight text-slate-900 uppercase">Puck Radar</h1>
+        <p className="mt-2 text-slate-600">NHL and PWHL games</p>
 
         <div className="mt-6 flex gap-2">
           <button
@@ -246,8 +258,48 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
           </button>
         </div>
 
+        <div className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
+          <button
+            onClick={() => changeDate(-1)}
+            className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:shadow-md"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+            Previous Day
+          </button>
+          
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-lg font-bold text-slate-900">
+              {selectedDate.toLocaleDateString([], {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
+            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-slate-500">{formatDate(selectedDate)}</p>
+              {formatDate(selectedDate) === formatDate(new Date()) && (
+                <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+                  Today
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <button
+            onClick={() => changeDate(1)}
+            className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:shadow-md"
+          >
+            Next Day
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+        </div>
+
         
-  <div className="mb-6 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
+  <div className="mt-8 mb-6 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
     <div className="mb-3 flex items-center justify-between gap-3">
       <div>
         <h2 className="text-sm font-semibold text-slate-900">
@@ -318,6 +370,8 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
       PWHL
     </h3>
 
+    
+
     <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
       {pwhlTeams.map((team) => {
         const teamKey = `${team.league}-${team.abbrev}`;
@@ -359,7 +413,7 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                  Best Game Tonight
+                  {formatDate(selectedDate) === formatDate(new Date()) ? "Best Game Tonight" : "Best Game"}
                 </p>
                 <h2 className="mt-1 text-2xl font-bold text-slate-950">
                   {featuredGame.awayAbbrev || featuredGame.awayTeam} at{" "}
@@ -373,7 +427,10 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
               <span className="rounded-full bg-slate-950 px-3 py-1 text-sm font-medium text-white">
                 {featuredGame.status}
               </span>
+              
             </div>
+
+            
 
             <GameCard
               key={`featured-${featuredGame.id}`}
@@ -390,14 +447,19 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
               homeScore={featuredGame.homeScore}
               seriesStatus={featuredGame.seriesStatus}
               seriesGameNumber={featuredGame.seriesGameNumber}
+              goals={featuredGame.goals}
+              broadcasts={featuredGame.broadcasts}
               isFavoriteTeamGame={
                 !!favoriteTeam &&
                 (featuredGame.awayAbbrev === favoriteTeam ||
                   featuredGame.homeAbbrev === favoriteTeam)
               }
+              
             />
           </section>
         ) : null}
+
+        
 
         {loading ? (
           <div className="mt-8 rounded-2xl border border-slate-300 bg-white/70 backdrop-blur-sm p-6 text-slate-600 shadow-md">
@@ -410,30 +472,32 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
         ) : remainingGames.length === 0 ? null : (
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             {remainingGames.map((game) => {
-  const isFavoriteTeamGame =
-    favoriteTeam &&
-    (game.awayAbbrev === favoriteTeam || game.homeAbbrev === favoriteTeam);
+              const isFavoriteTeamGame =
+                favoriteTeam &&
+                (game.awayAbbrev === favoriteTeam || game.homeAbbrev === favoriteTeam);
 
-  return (
-    <GameCard
-      key={game.id}
-      league={game.league}
-      awayTeam={game.awayTeam}
-      homeTeam={game.homeTeam}
-      awayAbbrev={game.awayAbbrev}
-      homeAbbrev={game.homeAbbrev}
-      awayLogo={game.awayLogo}
-      homeLogo={game.homeLogo}
-      time={game.time}
-      status={game.status}
-      awayScore={game.awayScore}
-      homeScore={game.homeScore}
-      seriesStatus={game.seriesStatus}
-      seriesGameNumber={game.seriesGameNumber}
-      isFavoriteTeamGame={!!isFavoriteTeamGame}
-    />
-  );
-})}
+              return (
+                <GameCard
+                  key={game.id}
+                  league={game.league}
+                  awayTeam={game.awayTeam}
+                  homeTeam={game.homeTeam}
+                  awayAbbrev={game.awayAbbrev}
+                  homeAbbrev={game.homeAbbrev}
+                  awayLogo={game.awayLogo}
+                  homeLogo={game.homeLogo}
+                  time={game.time}
+                  status={game.status}
+                  awayScore={game.awayScore}
+                  homeScore={game.homeScore}
+                  seriesStatus={game.seriesStatus}
+                  seriesGameNumber={game.seriesGameNumber}
+                  goals={game.goals}
+                  broadcasts={game.broadcasts}
+                  isFavoriteTeamGame={!!isFavoriteTeamGame}
+                />
+              );
+            })}
           </div>
         )}
       </div>

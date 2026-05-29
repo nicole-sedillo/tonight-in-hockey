@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { Goal, Broadcast } from "@/types/hockey";
 
 type GameCardProps = {
   league: string;
@@ -15,6 +16,8 @@ type GameCardProps = {
   seriesStatus?: string;
   seriesGameNumber?: string;
   isFavoriteTeamGame?: boolean;
+  goals?: Goal[];
+  broadcasts?: Broadcast[];
 };
 
 export default function GameCard({
@@ -32,6 +35,8 @@ export default function GameCard({
   seriesStatus,
   seriesGameNumber,
   isFavoriteTeamGame,
+  goals,
+  broadcasts,
 }: GameCardProps) {
   const showScores =
     awayScore !== undefined &&
@@ -81,9 +86,7 @@ export default function GameCard({
 
     {showScores ? (
       <span className="text-lg font-bold text-slate-900">{awayScore}</span>
-    ) : (
-      <span className="text-slate-400">@</span>
-    )}
+    ) : null}
   </div>
 
   <div className="flex items-center justify-between rounded-xl bg-slate-100/80 px-4 py-3">
@@ -102,9 +105,7 @@ export default function GameCard({
 
     {showScores ? (
       <span className="text-lg font-bold text-slate-900">{homeScore}</span>
-    ) : (
-      <span className="text-slate-400">vs</span>
-    )}
+    ) : null}
   </div>
 </div>
 
@@ -114,6 +115,71 @@ export default function GameCard({
     {seriesGameNumber ? (
       <p className="mt-1 text-slate-500">{seriesGameNumber}</p>
     ) : null}
+  </div>
+) : null}
+
+{goals && goals.length > 0 ? (
+  <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3">
+    <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-600">
+      Scoring Summary ({goals.length} {goals.length === 1 ? 'Goal' : 'Goals'})
+    </p>
+    <div className="space-y-2.5">
+      {goals.map((goal, index) => (
+        <div
+          key={index}
+          className="flex items-start justify-between border-l-2 border-blue-500 pl-3 text-sm"
+        >
+          <div className="flex-1">
+            <p className="font-semibold text-slate-900">
+              <span className="text-blue-700">{goal.teamAbbrev || goal.team}</span> — {goal.scorer}
+              {goal.strength && goal.strength !== "even" && (
+                <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                  {goal.strength.toUpperCase()}
+                </span>
+              )}
+            </p>
+            {goal.assists && goal.assists.length > 0 && (
+              <p className="mt-0.5 text-xs text-slate-500">
+                Assists: {goal.assists.join(", ")}
+              </p>
+            )}
+          </div>
+          <div className="ml-3 flex flex-col items-end text-xs text-slate-600">
+            <span className="font-medium">{goal.period}</span>
+            <span className="text-slate-500">{goal.time}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+) : null}
+
+{broadcasts && broadcasts.length > 0 ? (
+  <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3">
+    <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-600">
+      Where to Watch
+    </p>
+    <div className="flex flex-wrap gap-2">
+      {broadcasts.map((broadcast, index) => {
+        const marketLabel = 
+          broadcast.market === "N" ? "National" :
+          broadcast.market === "H" ? "Home" :
+          broadcast.market === "A" ? "Away" : "";
+        
+        return (
+          <span
+            key={index}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm shadow-sm border border-slate-200"
+          >
+            <span className="font-semibold text-slate-900">{broadcast.network}</span>
+            <span className="text-xs text-slate-500">({broadcast.countryCode})</span>
+            {marketLabel && (
+              <span className="text-xs text-slate-400">• {marketLabel}</span>
+            )}
+          </span>
+        );
+      })}
+    </div>
   </div>
 ) : null}
 
