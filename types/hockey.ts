@@ -6,6 +6,7 @@ export type Goal = {
   scorer: string;
   assists?: string[];
   strength?: string;
+  shotType?: string;
 };
 
 export type Broadcast = {

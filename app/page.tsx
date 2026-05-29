@@ -4,19 +4,21 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import GameCard from "@/components/GameCard";
 import type { HockeyGame } from "@/types/hockey";
-import { getFavoriteTeam, setFavoriteTeam } from "@/lib/favoriteTeam";
+import { getFavoriteTeams, toggleFavoriteTeam, clearFavoriteTeams } from "@/lib/favoriteTeam";
 import { nhlTeams } from "@/lib/nhlTeams";
 import { pwhlTeams } from "@/lib/pwhlTeams";
 
 
 
-function scoreFeaturedGame(game: HockeyGame, favoriteTeam: string | null) {
+function scoreFeaturedGame(game: HockeyGame, favoriteTeams: string[]) {
   let score = 0;
 
-  const isFavoriteTeamGame =
-    favoriteTeam &&
-    (game.awayAbbrev === favoriteTeam ||
-      game.homeAbbrev === favoriteTeam);
+  const homeKey = `${game.league}-${game.homeAbbrev}`;
+  const awayKey = `${game.league}-${game.awayAbbrev}`;
+  
+  const isFavoriteTeamGame = 
+    favoriteTeams.includes(homeKey) || 
+    favoriteTeams.includes(awayKey);
 
   if (isFavoriteTeamGame) score += 50;
 
@@ -81,7 +83,7 @@ export default function HomePage() {
   const [games, setGames] = useState<HockeyGame[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLeague, setSelectedLeague] = useState<"ALL" | "NHL" | "PWHL">("ALL");
-  const [favoriteTeam, setFavoriteTeamState] = useState<string | null>(null);
+  const [favoriteTeams, setFavoriteTeamsState] = useState<string[]>([]);
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   
@@ -128,40 +130,38 @@ useEffect(() => {
 }, [selectedDate]);
 
   useEffect(() => {
-    const savedTeam = getFavoriteTeam();
-    if (savedTeam) {
-      setFavoriteTeamState(savedTeam);
-    }
-  }, []);
+  const savedTeams = getFavoriteTeams();
+  setFavoriteTeamsState(savedTeams);
+}, []);
 
   const filteredGames = games.filter((game) => {
-    const matchesLeague =
-      selectedLeague === "ALL" || game.league === selectedLeague;
+  const matchesLeague =
+    selectedLeague === "ALL" || game.league === selectedLeague;
 
-    const homeKey = `${game.league}-${game.homeAbbrev}`;
-    const awayKey = `${game.league}-${game.awayAbbrev}`;
+  const homeKey = `${game.league}-${game.homeAbbrev}`;
+  const awayKey = `${game.league}-${game.awayAbbrev}`;
 
-    const matchesFavorite =
-      !showOnlyFavorites ||
-      !favoriteTeam ||
-      favoriteTeam === homeKey ||
-      favoriteTeam === awayKey;
+  const matchesFavorite =
+    !showOnlyFavorites ||
+    favoriteTeams.length === 0 ||
+    favoriteTeams.includes(homeKey) ||
+    favoriteTeams.includes(awayKey);
 
     return matchesLeague && matchesFavorite;
-  });
+});
 
-  const favoriteTeamGame = filteredGames.find((game) => {
-    const homeKey = `${game.league}-${game.homeAbbrev}`;
-    const awayKey = `${game.league}-${game.awayAbbrev}`;
-    return (
-      favoriteTeam &&
-      (homeKey === favoriteTeam || awayKey === favoriteTeam)
-    );
-  });
+const favoriteTeamGame = filteredGames.find((game) => {
+  const homeKey = `${game.league}-${game.homeAbbrev}`;
+  const awayKey = `${game.league}-${game.awayAbbrev}`;
+  return (
+    favoriteTeams.length > 0 &&
+    (favoriteTeams.includes(homeKey) || favoriteTeams.includes(awayKey))
+  );
+});
 
 const bestGame = filteredGames.length > 0
   ? [...filteredGames].sort(
-      (a, b) => scoreFeaturedGame(b, favoriteTeam) - scoreFeaturedGame(a, favoriteTeam)
+      (a, b) => scoreFeaturedGame(b, favoriteTeams) - scoreFeaturedGame(a, favoriteTeams)
     )[0]
   : undefined;
 
@@ -220,7 +220,7 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
         <rect width="100%" height="100%" fill="url(#scratch-pattern)"/>
       </svg>
       <div className="mx-auto max-w-5xl relative z-10">
-        <h1 className="text-5xl font-black tracking-tight text-slate-900 uppercase">Puck Radar</h1>
+        <h1 className="text-5xl font-black tracking-tight text-slate-900 uppercase">Puckbook</h1>
         <p className="mt-2 text-slate-600">NHL and PWHL games</p>
 
         <div className="mt-6 flex gap-2">
@@ -310,12 +310,12 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
         </p>
       </div>
 
-      {favoriteTeam && (
-        <button
-          onClick={() => {
-            setFavoriteTeamState(null);
-            localStorage.removeItem("favoriteTeam");
-          }}
+      {favoriteTeams.length > 0 && (
+  <button
+    onClick={() => {
+      setFavoriteTeamsState([]);
+      clearFavoriteTeams();
+    }}
           className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
         >
           Clear
@@ -334,14 +334,15 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
     <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
       {nhlTeams.map((team) => {
         const teamKey = `${team.league}-${team.abbrev}`;
-        const isSelected = favoriteTeam === teamKey;
+        const isSelected = favoriteTeams.includes(teamKey); 
 
         return (
           <button
             key={teamKey}
             onClick={() => {
-              setFavoriteTeamState(teamKey);
-              setFavoriteTeam(teamKey);
+              toggleFavoriteTeam(teamKey);           
+              const newTeams = getFavoriteTeams();   
+              setFavoriteTeamsState(newTeams);       
             }}
             title={team.name}
             className={`flex flex-col items-center justify-center rounded-xl border p-2 transition hover:-translate-y-0.5 hover:shadow-md ${
@@ -375,15 +376,15 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
     <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
       {pwhlTeams.map((team) => {
         const teamKey = `${team.league}-${team.abbrev}`;
-        const isSelected = favoriteTeam === teamKey;
+       const isSelected = favoriteTeams.includes(teamKey);
 
-        return (
-          <button
-            key={teamKey}
-            onClick={() => {
-              setFavoriteTeamState(teamKey);
-              setFavoriteTeam(teamKey);
-            }}
+      return (
+        <button
+          onClick={() => {
+            toggleFavoriteTeam(teamKey);
+            const newTeams = getFavoriteTeams();
+            setFavoriteTeamsState(newTeams);
+          }}
             title={team.name}
             className={`flex flex-col items-center justify-center rounded-xl border p-2 transition hover:-translate-y-0.5 hover:shadow-md ${
               isSelected
@@ -450,11 +451,12 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
               goals={featuredGame.goals}
               broadcasts={featuredGame.broadcasts}
               isFavoriteTeamGame={
-                !!favoriteTeam &&
-                (featuredGame.awayAbbrev === favoriteTeam ||
-                  featuredGame.homeAbbrev === favoriteTeam)
+                favoriteTeams.some(ft => {
+                  const abbrev = ft.split('-')[1];
+                  return featuredGame.awayAbbrev === abbrev || featuredGame.homeAbbrev === abbrev;
+                })
               }
-              
+                            
             />
           </section>
         ) : null}
@@ -473,8 +475,10 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             {remainingGames.map((game) => {
               const isFavoriteTeamGame =
-                favoriteTeam &&
-                (game.awayAbbrev === favoriteTeam || game.homeAbbrev === favoriteTeam);
+              favoriteTeams.some(ft => {
+                const abbrev = ft.split('-')[1];
+                return game.awayAbbrev === abbrev || game.homeAbbrev === abbrev;
+              })
 
               return (
                 <GameCard

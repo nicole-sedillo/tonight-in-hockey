@@ -53,17 +53,25 @@ function formatSeriesStatus(series?: NhlSeries) {
 
   const topWins = Number(series.topSeed.wins);
   const bottomWins = Number(series.bottomSeed.wins);
+  const neededToWin = series.neededToWin || 4; // Default to 4 if not provided
 
+  // Check if series is tied
   if (topWins === bottomWins) {
     return `Series tied ${topWins}-${bottomWins}`;
   }
 
+  // Determine who's ahead
   const leader =
     topWins > bottomWins ? series.topSeed.abbrev : series.bottomSeed.abbrev;
-
   const leaderWins = Math.max(topWins, bottomWins);
   const trailingWins = Math.min(topWins, bottomWins);
 
+  // Check if the leader has won the series
+  if (leaderWins >= neededToWin) {
+    return `${leader} won series ${leaderWins}-${trailingWins}`;
+  }
+
+  // Otherwise they're still leading
   return `${leader} leads series ${leaderWins}-${trailingWins}`;
 }
 
@@ -176,7 +184,7 @@ async function fetchNhlGameGoals(gameId: string): Promise<Goal[]> {
                          (data.awayTeam?.abbrev || "") : 
                          (data.homeTeam?.abbrev || "");
       
-      return {
+        return {
         period: `P${periodNumber}`,
         time: timeInPeriod,
         team: "",
@@ -184,6 +192,7 @@ async function fetchNhlGameGoals(gameId: string): Promise<Goal[]> {
         scorer: scorerName,
         assists: assists.length > 0 ? assists : undefined,
         strength: strengthDisplay,
+        shotType: details.shotType || undefined,
       };
     });
   } catch (error) {

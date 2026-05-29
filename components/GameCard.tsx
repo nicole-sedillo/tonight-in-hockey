@@ -123,31 +123,47 @@ export default function GameCard({
     <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-600">
       Scoring Summary ({goals.length} {goals.length === 1 ? 'Goal' : 'Goals'})
     </p>
-    <div className="space-y-2.5">
+    <div className="flex gap-3 overflow-x-auto pb-2">
       {goals.map((goal, index) => (
         <div
           key={index}
-          className="flex items-start justify-between border-l-2 border-blue-500 pl-3 text-sm"
+          className="flex-shrink-0 w-64 rounded-lg border-2 border-blue-500 bg-white p-3 text-sm"
         >
-          <div className="flex-1">
+          {/* Header: Team, Period, Time */}
+          <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200">
+            <span className="font-bold text-blue-700">{goal.teamAbbrev || goal.team}</span>
+            <div className="flex items-center gap-2 text-xs text-slate-600">
+              <span className="font-medium">{goal.period}</span>
+              <span className="text-slate-400">•</span>
+              <span>{goal.time}</span>
+            </div>
+          </div>
+          
+          {/* Scorer */}
+          <div className="mb-1">
             <p className="font-semibold text-slate-900">
-              <span className="text-blue-700">{goal.teamAbbrev || goal.team}</span> — {goal.scorer}
+              <span className="text-slate-600 text-xs font-normal mr-1">Goal:</span>
+              {goal.scorer}
               {goal.strength && goal.strength !== "even" && (
                 <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-                  {goal.strength.toUpperCase()}
+                  {goal.strength}
                 </span>
               )}
             </p>
-            {goal.assists && goal.assists.length > 0 && (
-              <p className="mt-0.5 text-xs text-slate-500">
-                Assists: {goal.assists.join(", ")}
+            {goal.shotType && (
+              <p className="text-xs text-slate-500 mt-0.5">
+                {goal.shotType.charAt(0).toUpperCase() + goal.shotType.slice(1)} shot
               </p>
             )}
           </div>
-          <div className="ml-3 flex flex-col items-end text-xs text-slate-600">
-            <span className="font-medium">{goal.period}</span>
-            <span className="text-slate-500">{goal.time}</span>
-          </div>
+          
+          {/* Assists */}
+          {goal.assists && goal.assists.length > 0 && (
+            <p className="text-xs text-slate-500">
+              <span className="font-medium text-slate-600 mr-1">Assist(s):</span>
+              {goal.assists.join(", ")}
+            </p>
+          )}
         </div>
       ))}
     </div>
