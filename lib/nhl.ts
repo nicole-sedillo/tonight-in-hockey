@@ -251,6 +251,7 @@ export async function getNhlGames(date?: string): Promise<HockeyGame[]> {
         network: broadcast.network || "Unknown",
         market: broadcast.market || "",
         countryCode: broadcast.countryCode || "",
+        logoUrl: broadcast.defaultLogo?.[0]?.url ?? undefined,
       }));
 
       return {

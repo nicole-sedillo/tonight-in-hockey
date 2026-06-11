@@ -13,6 +13,7 @@ export type Broadcast = {
   network: string;
   market: string; // N=National, H=Home, A=Away
   countryCode: string;
+  logoUrl?: string;
 };
 
 export type HockeyGame = {

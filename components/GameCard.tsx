@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { Goal, Broadcast } from "@/types/hockey";
+import { NETWORK_LOGOS } from "@/lib/networkLogos";
 
 type GameCardProps = {
   league: string;
@@ -170,6 +171,7 @@ export default function GameCard({
   </div>
 ) : null}
 
+
 {broadcasts && broadcasts.length > 0 ? (
   <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3">
     <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-600">
@@ -177,18 +179,36 @@ export default function GameCard({
     </p>
     <div className="flex flex-wrap gap-2">
       {broadcasts.map((broadcast, index) => {
-        const marketLabel = 
+        const logoUrl = broadcast.logoUrl || NETWORK_LOGOS[broadcast.network];
+        const marketLabel =
           broadcast.market === "N" ? "National" :
           broadcast.market === "H" ? "Home" :
           broadcast.market === "A" ? "Away" : "";
-        
+
         return (
           <span
             key={index}
             className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm shadow-sm border border-slate-200"
+            title={`${broadcast.network}${marketLabel ? ` (${marketLabel})` : ""}`}
           >
-            <span className="font-semibold text-slate-900">{broadcast.network}</span>
-            <span className="text-xs text-slate-500">({broadcast.countryCode})</span>
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={broadcast.network}
+                className="h-5 w-auto max-w-[60px] object-contain"
+                onError={(e) => {
+                  // Fall back to text if image fails to load
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                  (e.currentTarget.nextSibling as HTMLElement | null)?.removeAttribute("hidden");
+                }}
+              />
+            ) : null}
+            <span
+              hidden={!!logoUrl}
+              className="font-semibold text-slate-900"
+            >
+              {broadcast.network}
+            </span>
             {marketLabel && (
               <span className="text-xs text-slate-400">• {marketLabel}</span>
             )}

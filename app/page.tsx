@@ -7,6 +7,7 @@ import type { HockeyGame } from "@/types/hockey";
 import { getFavoriteTeams, toggleFavoriteTeam, clearFavoriteTeams } from "@/lib/favoriteTeam";
 import { nhlTeams } from "@/lib/nhlTeams";
 import { pwhlTeams } from "@/lib/pwhlTeams";
+import { sendGameNotification } from "@/lib/notifications";
 
 
 
@@ -86,6 +87,9 @@ export default function HomePage() {
   const [favoriteTeams, setFavoriteTeamsState] = useState<string[]>([]);
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [previousGameStates, setPreviousGameStates] = useState<Map<string, string>>(new Map());
   
   const formatDate = (date: Date) => {
     // Format in local timezone, not UTC
@@ -99,6 +103,25 @@ const changeDate = (days: number) => {
   const newDate = new Date(selectedDate);
   newDate.setDate(newDate.getDate() + days);
   setSelectedDate(newDate);
+};
+
+const handleNotificationToggle = async () => {
+  if (!('Notification' in window)) return;
+
+  if (notificationsEnabled) {
+    setNotificationsEnabled(false);
+    localStorage.setItem('notificationsEnabled', 'false');
+    return;
+  }
+
+  const permission =
+    Notification.permission === 'default'
+      ? await Notification.requestPermission()
+      : Notification.permission;
+
+  const enabled = permission === 'granted';
+  setNotificationsEnabled(enabled);
+  localStorage.setItem('notificationsEnabled', String(enabled));
 };
 
 useEffect(() => {
@@ -132,7 +155,82 @@ useEffect(() => {
   useEffect(() => {
   const savedTeams = getFavoriteTeams();
   setFavoriteTeamsState(savedTeams);
+
+  const notifEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+  if (notifEnabled && Notification.permission === 'granted') {
+    setNotificationsEnabled(true);
+  }
+  
 }, []);
+
+useEffect(() => {
+  if (!notificationsEnabled || games.length === 0) return;
+
+  const checkInterval = setInterval(() => {
+    const now = new Date();
+    
+    games.forEach((game) => {
+      // Only check games that haven't started yet
+      if (game.status !== 'Preview') return;
+
+      const gameTime = new Date(game.time);
+      const minutesUntilGame = (gameTime.getTime() - now.getTime()) / 1000 / 60;
+
+      // Notify 15 minutes before game starts
+      if (minutesUntilGame <= 15 && minutesUntilGame > 14) {
+        const homeKey = `${game.league}-${game.homeAbbrev}`;
+        const awayKey = `${game.league}-${game.awayAbbrev}`;
+        
+        // Check if it's a favorite team game
+        const isFavorite = 
+          favoriteTeams.includes(homeKey) || 
+          favoriteTeams.includes(awayKey);
+
+        if (isFavorite || favoriteTeams.length === 0) {
+          // Send notification (you'll create this function in Step 3)
+          sendGameNotification(
+            `${game.league} Game Starting Soon!`,
+            `${game.awayAbbrev} @ ${game.homeAbbrev} starts in 15 minutes`,
+            game.homeLogo || game.awayLogo
+          );
+        }
+      }
+    });
+  }, 60000); // Check every minute
+
+  return () => clearInterval(checkInterval);
+}, [games, notificationsEnabled, favoriteTeams]);
+
+useEffect(() => {
+  if (!notificationsEnabled) return;
+
+  games.forEach((game) => {
+    const previousStatus = previousGameStates.get(game.id);
+    
+    // Detect when game goes from Preview to Live
+    if (previousStatus === 'Preview' && game.status === 'Live') {
+      const homeKey = `${game.league}-${game.homeAbbrev}`;
+      const awayKey = `${game.league}-${game.awayAbbrev}`;
+      
+      const isFavorite = 
+        favoriteTeams.includes(homeKey) || 
+        favoriteTeams.includes(awayKey);
+
+      if (isFavorite || favoriteTeams.length === 0) {
+        sendGameNotification(
+          `${game.league} Game Started!`,
+          `${game.awayAbbrev} @ ${game.homeAbbrev} is now live!`,
+          game.homeLogo || game.awayLogo
+        );
+      }
+    }
+  });
+
+  // Update previous states
+  const newStates = new Map();
+  games.forEach(game => newStates.set(game.id, game.status));
+  setPreviousGameStates(newStates);
+}, [games, notificationsEnabled, favoriteTeams]);
 
   const filteredGames = games.filter((game) => {
   const matchesLeague =
@@ -226,10 +324,10 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
         <div className="mt-6 flex gap-2">
           <button
             onClick={() => setSelectedLeague("ALL")}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-full px-4 py-2 text-sm font-medium transition-all hover:scale-105 cursor-pointer ${
               selectedLeague === "ALL"
                 ? "bg-slate-900 text-white shadow-md"
-                : "bg-white/60 text-slate-700 hover:bg-white/80"
+                : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:shadow-md"
             }`}
           >
             All
@@ -237,10 +335,10 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
 
           <button
             onClick={() => setSelectedLeague("NHL")}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-full px-4 py-2 text-sm font-medium transition-all hover:scale-105 cursor-pointer ${
               selectedLeague === "NHL"
                 ? "bg-slate-900 text-white shadow-md"
-                : "bg-white/60 text-slate-700 hover:bg-white/80"
+                : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:shadow-md"
             }`}
           >
             NHL
@@ -248,20 +346,31 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
 
           <button
             onClick={() => setSelectedLeague("PWHL")}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-full px-4 py-2 text-sm font-medium transition-all hover:scale-105 cursor-pointer ${
               selectedLeague === "PWHL"
                 ? "bg-slate-900 text-white shadow-md"
-                : "bg-white/60 text-slate-700 hover:bg-white/80"
+                : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:shadow-md"
             }`}
           >
             PWHL
           </button>
         </div>
 
+        <button
+          onClick={handleNotificationToggle}
+          className={`mt-3 rounded-lg px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
+            notificationsEnabled
+              ? 'bg-green-600 text-white shadow-md hover:bg-green-700'
+              : 'bg-white/60 text-slate-700 hover:bg-white/80 border border-slate-300'
+          }`}
+        >
+          🔔 {notificationsEnabled ? 'Turn Off Notifications' : 'Enable Notifications'}
+        </button>
+
         <div className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
           <button
             onClick={() => changeDate(-1)}
-            className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:shadow-md"
+            className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50 hover:shadow-md hover:scale-105 cursor-pointer"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -289,7 +398,7 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
           
           <button
             onClick={() => changeDate(1)}
-            className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:shadow-md"
+            className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50 hover:shadow-md hover:scale-105 cursor-pointer"
           >
             Next Day
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
@@ -345,7 +454,7 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
               setFavoriteTeamsState(newTeams);       
             }}
             title={team.name}
-            className={`flex flex-col items-center justify-center rounded-xl border p-2 transition hover:-translate-y-0.5 hover:shadow-md ${
+            className={`flex flex-col items-center justify-center rounded-xl border p-2 transition hover:-translate-y-0.5 hover:shadow-md cursor-pointer ${
               isSelected
                 ? "border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300"
                 : "border-slate-200 bg-white hover:bg-slate-50"
@@ -380,13 +489,14 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
 
       return (
         <button
+          key={teamKey}
           onClick={() => {
             toggleFavoriteTeam(teamKey);
             const newTeams = getFavoriteTeams();
             setFavoriteTeamsState(newTeams);
           }}
             title={team.name}
-            className={`flex flex-col items-center justify-center rounded-xl border p-2 transition hover:-translate-y-0.5 hover:shadow-md ${
+            className={`flex flex-col items-center justify-center rounded-xl border p-2 transition hover:-translate-y-0.5 hover:shadow-md cursor-pointer ${
               isSelected
                 ? "border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300"
                 : "border-slate-200 bg-white hover:bg-slate-50"
