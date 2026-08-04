@@ -90,7 +90,7 @@ export default function HomePage() {
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [previousGameStates, setPreviousGameStates] = useState<Map<string, string>>(new Map());
-  
+  const [favExpanded, setFavExpanded] = useState(false);
   const formatDate = (date: Date) => {
     // Format in local timezone, not UTC
     const year = date.getFullYear();
@@ -408,32 +408,44 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
         </div>
 
         
-  <div className="mt-8 mb-6 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
-    <div className="mb-3 flex items-center justify-between gap-3">
-      <div>
-        <h2 className="text-sm font-semibold text-slate-900">
-          Favourite Team
-        </h2>
-        <p className="text-xs text-slate-500">
-          Choose a team to highlight their games.
-        </p>
-      </div>
-
-      {favoriteTeams.length > 0 && (
+          
+        <div className="mt-8 mb-6 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
+  <div className="flex items-center justify-between gap-3">
   <button
-    onClick={() => {
-      setFavoriteTeamsState([]);
-      clearFavoriteTeams();
-    }}
-          className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
-        >
-          Clear
-        </button>
-      )}
+    onClick={() => setFavExpanded((prev) => !prev)}
+    className="flex flex-1 items-center gap-2 text-left"
+  >
+    <div>
+      <h2 className="text-sm font-semibold text-slate-900">Favourite Team</h2>
+      <p className="text-xs text-slate-500">Choose a team to highlight their games.</p>
     </div>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+      stroke="currentColor"
+      className={`ml-1 h-6 w-6 shrink-0 text-slate-400 transition-transform duration-300 cursor-pointer ${favExpanded ? "rotate-180" : ""}`}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+    </svg>
+  </button>
+
+  {favoriteTeams.length > 0 && (
+    <button
+      onClick={() => {
+        setFavoriteTeamsState([]);
+        clearFavoriteTeams();
+      }}
+      className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
+    >
+      Clear
+    </button>
+  )}
+</div>
 
     
-
+<div className={`overflow-hidden transition-all duration-300 ease-in-out ${favExpanded ? "mt-3 max-h-[600px]" : "max-h-0"}`}>
   <div className="space-y-5">
   <div>
     <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
@@ -517,7 +529,8 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
     </div>
   </div>
 </div>
-  </div>
+</div>
+</div>
 
         {!loading && featuredGame ? (
           <section className="mt-8 rounded-3xl border border-slate-300 bg-white/70 p-6 shadow-md backdrop-blur-sm">
