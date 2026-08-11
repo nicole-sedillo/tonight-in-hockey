@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tonight in Hockey",
-  description: "Want to know what NHL and PWHL games are on tonight? This is the app for you.",
+  title: "PuckBook",
+  description: "View NHL and PWHL games, scores, and stats in real-time. Plus, view past games and previews for upcoming games.",
 };
 
 export default function RootLayout({

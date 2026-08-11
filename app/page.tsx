@@ -8,6 +8,7 @@ import { getFavoriteTeams, toggleFavoriteTeam, clearFavoriteTeams } from "@/lib/
 import { nhlTeams } from "@/lib/nhlTeams";
 import { pwhlTeams } from "@/lib/pwhlTeams";
 import { sendGameNotification } from "@/lib/notifications";
+import Calendar from "@/components/Calendar";
 
 
 
@@ -291,7 +292,7 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
           <line x1="970" y1="600" x2="1030" y2="600" stroke="#dc2626" strokeWidth="6" strokeLinecap="round"/>
         </svg>
       </div>
-      {/* Ice scratches - subtle and organic */}
+      {/* Ice scratches */}
       <svg className="absolute inset-0 w-full h-full opacity-[0.08]" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="scratch-pattern" x="0" y="0" width="400" height="400" patternUnits="userSpaceOnUse">
@@ -320,6 +321,8 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
       <div className="mx-auto max-w-5xl relative z-10">
         <h1 className="text-5xl font-black tracking-tight text-slate-900 uppercase">Puckbook</h1>
         <p className="mt-2 text-slate-600">NHL and PWHL games</p>
+
+        <Calendar />
 
         <div className="mt-6 flex gap-2">
           <button
