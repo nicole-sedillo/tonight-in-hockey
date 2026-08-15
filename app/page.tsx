@@ -419,7 +419,7 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
     className="flex flex-1 items-center gap-2 text-left"
   >
     <div>
-      <h2 className="text-sm font-semibold text-slate-900">Favourite Team</h2>
+      <h2 className="text-sm font-semibold text-slate-900">Favourite Team(s)</h2>
       <p className="text-xs text-slate-500">Choose a team to highlight their games.</p>
     </div>
     <svg

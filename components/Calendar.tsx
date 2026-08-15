@@ -6,6 +6,7 @@ import type { HockeyGame } from "@/types/hockey";
 
 export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState("");
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [games, setGames] = useState<HockeyGame[]>([]);
 
   useEffect(() => {
@@ -22,15 +23,106 @@ export default function Calendar() {
     fetchGames();
   }, [selectedDate]);
 
+   function changeMonth(amount: number) {
+    setCurrentMonth((current) => {
+      const newMonth = new Date(current);
+
+      newMonth.setMonth(newMonth.getMonth() + amount);
+
+      return newMonth;
+    });
+  }
+
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
+
+  const days = Array.from(
+  { length: daysInMonth },
+  (_, index) => index + 1
+);
+
+function selectDay(day: number) {
+  const date = new Date(year, month, day);
+
+  const formattedDate = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+
+  setSelectedDate(formattedDate);
+}
+
   return (
+    
     <div>
       <h2>Game Calendar</h2>
 
-      <input
-        type="date"
-        value={selectedDate}
-        onChange={(event) => setSelectedDate(event.target.value)}
-      />
+      <div className="flex items-center justify-between mb-4">
+  <button onClick={() => changeMonth(-1)}>
+    ←
+  </button>
+
+  <h3>
+    {currentMonth.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    })}
+  </h3>
+
+  <button onClick={() => changeMonth(1)}>
+    →
+  </button>
+</div>
+
+<div className="grid grid-cols-7 text-center">
+  <div>Sun</div>
+  <div>Mon</div>
+  <div>Tue</div>
+  <div>Wed</div>
+  <div>Thu</div>
+  <div>Fri</div>
+  <div>Sat</div>
+</div>
+
+<div className="grid grid-cols-7 text-center">
+  {Array.from({ length: firstDayOfMonth }).map((_, index) => (
+    <div key={`empty-${index}`} />
+  ))}
+
+  {days.map((day) => {
+  const date = new Date(year, month, day);
+
+  const formattedDate = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+
+  const isSelected = selectedDate === formattedDate;
+
+  return (
+    <button
+      key={day}
+      onClick={() => selectDay(day)}
+      className={`cursor-pointer p-3 rounded-lg ${
+        isSelected
+          ? "bg-blue-600 text-white"
+          : "hover:bg-slate-100"
+      }`}
+    >
+      {day}
+    </button>
+  );
+})}
+</div>
+
+<p>Days in month: {daysInMonth}</p>
+<p>First day: {firstDayOfMonth}</p>
 
       <p>Selected date: {selectedDate}</p>
 
