@@ -59,12 +59,16 @@ export default function LoginPage() {
   }
 
   return (
-    <main>
-      <h1>Log in to Puckbook</h1>
+  <main className="mx-auto max-w-md p-6">
+    <h1 className="mb-6 text-2xl font-bold">
+      Log in to Puckbook
+    </h1>
 
-      <label>
+    <div className="flex flex-col gap-4">
+      <label className="flex flex-col gap-2">
         Email
         <input
+          className="border p-2"
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
@@ -72,9 +76,10 @@ export default function LoginPage() {
         />
       </label>
 
-      <label>
+      <label className="flex flex-col gap-2">
         Password
         <input
+          className="border p-2"
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
@@ -83,23 +88,28 @@ export default function LoginPage() {
         />
       </label>
 
-      <button
-        type="button"
-        onClick={handleLogin}
-        disabled={isLoading}
-      >
-        Log in
-      </button>
+      <div className="flex flex-col gap-4">
+        <button
+          className="cursor-pointer"
+          type="button"
+          onClick={handleLogin}
+          disabled={isLoading}
+        >
+          Log in
+        </button>
 
-      <button
-        type="button"
-        onClick={handleSignUp}
-        disabled={isLoading}
-      >
-        Create account
-      </button>
+        <button
+          className="cursor-pointer"
+          type="button"
+          onClick={handleSignUp}
+          disabled={isLoading}
+        >
+          Create account
+        </button>
+      </div>
 
       {message && <p>{message}</p>}
-    </main>
-  );
+    </div>
+  </main>
+);
 }

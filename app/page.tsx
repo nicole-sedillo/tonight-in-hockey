@@ -8,7 +8,6 @@ import { getFavoriteTeams, toggleFavoriteTeam, clearFavoriteTeams } from "@/lib/
 import { nhlTeams } from "@/lib/nhlTeams";
 import { pwhlTeams } from "@/lib/pwhlTeams";
 import { sendGameNotification } from "@/lib/notifications";
-import Calendar from "@/components/Calendar";
 
 
 
@@ -321,8 +320,6 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
       <div className="mx-auto max-w-5xl relative z-10">
         <h1 className="text-5xl font-black tracking-tight text-slate-900 uppercase">Puckbook</h1>
         <p className="mt-2 text-slate-600">NHL and PWHL games</p>
-
-        <Calendar />
 
         <div className="mt-6 flex gap-2">
           <button
