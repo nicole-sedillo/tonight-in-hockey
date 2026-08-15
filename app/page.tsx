@@ -318,10 +318,11 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
         <rect width="100%" height="100%" fill="url(#scratch-pattern)"/>
       </svg>
       <div className="mx-auto max-w-5xl relative z-10">
-        <h1 className="text-5xl font-black tracking-tight text-slate-900 uppercase">Puckbook</h1>
-        <p className="mt-2 text-slate-600">NHL and PWHL games</p>
+        
+        <h1 className="mt-2 text-3xl text-slate-600">Find NHL and PWHL games</h1>
 
-        <div className="mt-6 flex gap-2">
+        <div className="mt-6 flex items-center justify-between gap-2">
+          <div className="flex gap-2">
           <button
             onClick={() => setSelectedLeague("ALL")}
             className={`rounded-full px-4 py-2 text-sm font-medium transition-all hover:scale-105 cursor-pointer ${
@@ -355,6 +356,7 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
             PWHL
           </button>
         </div>
+        
 
         <button
           onClick={handleNotificationToggle}
@@ -366,8 +368,9 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
         >
           🔔 {notificationsEnabled ? 'Turn Off Notifications' : 'Enable Notifications'}
         </button>
+      </div>
 
-        <div className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
+        <div className="mt-10 flex items-center justify-between gap-4 rounded-2xl border-t-4 border-b-4 border-x-0 border-t-blue-500 border-b-yellow-400 bg-white/80 p-4 shadow-sm">
           <button
             onClick={() => changeDate(-1)}
             className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50 hover:shadow-md hover:scale-105 cursor-pointer"
@@ -409,15 +412,15 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
 
         
           
-        <div className="mt-8 mb-6 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
+        <div className="mt-12 mb-6 rounded-2xl border-t-4 border-b-4 border-x-0 border-t-blue-500 border-b-yellow-400 bg-white/80 p-4 shadow-sm">
   <div className="flex items-center justify-between gap-3">
   <button
     onClick={() => setFavExpanded((prev) => !prev)}
     className="flex flex-1 items-center gap-2 text-left"
   >
     <div>
-      <h2 className="text-sm font-semibold text-slate-900">Favourite Team(s)</h2>
-      <p className="text-xs text-slate-500">Choose a team to highlight their games.</p>
+      <h2 className="text-sm font-semibold text-slate-900">Which teams would you like to follow?</h2>
+      <p className="text-xs text-slate-500">Choose team(s) to highlight their games.</p>
     </div>
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -437,9 +440,9 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
         setFavoriteTeamsState([]);
         clearFavoriteTeams();
       }}
-      className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
+      className="cursor-pointer rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
     >
-      Clear
+      Clear favourite team(s)
     </button>
   )}
 </div>
@@ -533,7 +536,7 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
 </div>
 
         {!loading && featuredGame ? (
-          <section className="mt-8 rounded-3xl border border-slate-300 bg-white/70 p-6 shadow-md backdrop-blur-sm">
+          <section className="mt-12 rounded-3xl border-t-4 border-b-4 border-x-0 border-t-blue-500 border-b-yellow-400 bg-white/70 p-6 shadow-md backdrop-blur-sm">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
@@ -587,11 +590,11 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
         
 
         {loading ? (
-          <div className="mt-8 rounded-2xl border border-slate-300 bg-white/70 backdrop-blur-sm p-6 text-slate-600 shadow-md">
+          <div className="mt-12 rounded-2xl border-t-4 border-b-4 border-x-0 border-t-blue-500 border-b-yellow-400 bg-white/70 backdrop-blur-sm p-6 text-slate-600 shadow-md">
             Loading games...
           </div>
         ) : filteredGames.length === 0 ? (
-          <div className="mt-8 rounded-2xl border border-slate-300 bg-white/70 backdrop-blur-sm p-6 text-slate-600 shadow-md">
+          <div className="mt-12 rounded-2xl border-t-4 border-b-4 border-x-0 border-t-blue-500 border-b-yellow-400 bg-white/70 backdrop-blur-sm p-6 text-slate-600 shadow-md">
             No games found.
           </div>
         ) : remainingGames.length === 0 ? null : (

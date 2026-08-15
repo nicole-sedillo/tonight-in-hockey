@@ -16,7 +16,7 @@ export default function LogoutButton() {
   }
 
   return (
-    <button className="cursor-pointer" type="button" onClick={handleLogout}>
+    <button className="cursor-pointer text-white hover:text-red-500 transition-colors" type="button" onClick={handleLogout}>
       Log out
     </button>
   );
