@@ -8,17 +8,34 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [games, setGames] = useState<HockeyGame[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!selectedDate) return;
 
     async function fetchGames() {
-      const response = await fetch(`/api/nhl?date=${selectedDate}`);
-      const data = await response.json();
+  try {
+    setLoading(true);
+    setError("");
+    setGames([]);
 
-      console.log(data);
-      setGames(data);
+    const response = await fetch(`/api/nhl?date=${selectedDate}`);
+
+    if (!response.ok) {
+      throw new Error("Failed to load games");
     }
+
+    const data = await response.json();
+
+    console.log(data);
+    setGames(data);
+  } catch (err) {
+    setError("Could not load games. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+}
 
     fetchGames();
   }, [selectedDate]);
@@ -125,6 +142,14 @@ function selectDay(day: number) {
 <p>First day: {firstDayOfMonth}</p>
 
       <p>Selected date: {selectedDate}</p>
+
+      {loading && <p>Loading games...</p>}
+
+      {error && <p className="text-red-500">{error}</p>}
+
+      {!loading && !error && selectedDate && games.length === 0 && (
+        <p>No games scheduled for this date.</p>
+      )}
 
       {games.map((game) => (
         <GameCard

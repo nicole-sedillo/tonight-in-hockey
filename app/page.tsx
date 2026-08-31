@@ -83,6 +83,7 @@ function getFeaturedReason(game: HockeyGame) {
 export default function HomePage() {
   const [games, setGames] = useState<HockeyGame[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [selectedLeague, setSelectedLeague] = useState<"ALL" | "NHL" | "PWHL">("ALL");
   const [favoriteTeams, setFavoriteTeamsState] = useState<string[]>([]);
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
@@ -126,28 +127,34 @@ const handleNotificationToggle = async () => {
 
 useEffect(() => {
   async function loadGames() {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
+    setError("");
 
-      const date = formatDate(selectedDate);
+    const date = formatDate(selectedDate);
 
-      const [nhlRes, pwhlRes] = await Promise.all([
-        fetch(`/api/nhl?date=${date}`),
-        fetch(`/api/pwhl?date=${date}`),
-      ]);
+    const [nhlRes, pwhlRes] = await Promise.all([
+      fetch(`/api/nhl?date=${date}`),
+      fetch(`/api/pwhl?date=${date}`),
+    ]);
 
-      const [nhlData, pwhlData] = await Promise.all([
-        nhlRes.json(),
-        pwhlRes.json(),
-      ]);
-
-      setGames([...(nhlData || []), ...(pwhlData || [])]);
-    } catch (error) {
-      console.error("Failed to load games:", error);
-    } finally {
-      setLoading(false);
+    if (!nhlRes.ok || !pwhlRes.ok) {
+      throw new Error("Failed to load games");
     }
+
+    const [nhlData, pwhlData] = await Promise.all([
+      nhlRes.json(),
+      pwhlRes.json(),
+    ]);
+
+    setGames([...(nhlData || []), ...(pwhlData || [])]);
+  } catch (error) {
+    console.error("Failed to load games:", error);
+    setError("Could not load games. Please try again.");
+  } finally {
+    setLoading(false);
   }
+}
 
   loadGames();
 }, [selectedDate]);
@@ -590,8 +597,12 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
         
 
         {loading ? (
-          <div className="mt-12 rounded-2xl border-t-4 border-b-4 border-x-0 border-t-blue-500 border-b-yellow-400 bg-white/70 backdrop-blur-sm p-6 text-slate-600 shadow-md">
+          <div className="mt-12 rounded-2xl bg-white/70 p-6 text-slate-600 shadow-md">
             Loading games...
+          </div>
+        ) : error ? (
+          <div className="mt-12 rounded-2xl bg-white/70 p-6 text-red-600 shadow-md">
+            {error}
           </div>
         ) : filteredGames.length === 0 ? (
           <div className="mt-12 rounded-2xl border-t-4 border-b-4 border-x-0 border-t-blue-500 border-b-yellow-400 bg-white/70 backdrop-blur-sm p-6 text-slate-600 shadow-md">

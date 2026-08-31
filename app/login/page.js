@@ -95,7 +95,7 @@ export default function LoginPage() {
           onClick={handleLogin}
           disabled={isLoading}
         >
-          Log in
+          {isLoading ? "Loading..." : "Log in"}
         </button>
 
         <button
@@ -104,7 +104,7 @@ export default function LoginPage() {
           onClick={handleSignUp}
           disabled={isLoading}
         >
-          Create account
+          {isLoading ? "Loading..." : "Create account"}
         </button>
       </div>
 
