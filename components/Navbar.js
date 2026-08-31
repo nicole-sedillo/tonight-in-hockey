@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import LogoutButton from "@/components/LogoutButton";
 import Image from "next/image";
+import MobileNav from "@/components/MobileNav";
 
 export default async function Navbar() {
   const supabase = await createClient();
@@ -21,7 +22,7 @@ export default async function Navbar() {
         />
         </Link>
 
-      <div className="flex items-center gap-6 text-xl font-medium">
+      <div className="hidden items-center gap-6 text-xl font-medium md:flex">
         <Link href="/" className="text-white hover:text-red-500 transition-colors">Home</Link>
         <Link href="/calendar" className="text-white hover:text-red-500 transition-colors">Calendar</Link>
 
@@ -34,6 +35,7 @@ export default async function Navbar() {
         <Link href="/login" className="text-white hover:text-red-500 transition-colors">Log in</Link>
         )}
       </div>
+      <MobileNav isLoggedIn={!!user} />
     </nav>
   );
 }
