@@ -3,13 +3,21 @@
 import { useEffect, useState } from "react";
 import GameCard from "@/components/GameCard";
 import type { HockeyGame } from "@/types/hockey";
+import { formatDate } from "@/utilities/date";
 
 export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState("");
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
   const [games, setGames] = useState<HockeyGame[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+  const today = new Date();
+
+  setCurrentMonth(today);
+  setSelectedDate(formatDate(today));
+}, []);
 
   useEffect(() => {
     if (!selectedDate) return;
@@ -41,14 +49,20 @@ export default function Calendar() {
   }, [selectedDate]);
 
    function changeMonth(amount: number) {
-    setCurrentMonth((current) => {
-      const newMonth = new Date(current);
+  setCurrentMonth((current) => {
+    if (!current) return current;
 
-      newMonth.setMonth(newMonth.getMonth() + amount);
+    const newMonth = new Date(current);
 
-      return newMonth;
-    });
-  }
+    newMonth.setMonth(newMonth.getMonth() + amount);
+
+    return newMonth;
+  });
+}
+
+  if (!currentMonth) {
+  return <p>Loading calendar...</p>;
+}
 
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
@@ -64,14 +78,7 @@ export default function Calendar() {
 
 function selectDay(day: number) {
   const date = new Date(year, month, day);
-
-  const formattedDate = [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-  ].join("-");
-
-  setSelectedDate(formattedDate);
+  setSelectedDate(formatDate(date));
 }
 
   return (
@@ -114,11 +121,7 @@ function selectDay(day: number) {
   {days.map((day) => {
   const date = new Date(year, month, day);
 
-  const formattedDate = [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-  ].join("-");
+  const formattedDate = formatDate(date);
 
   const isSelected = selectedDate === formattedDate;
 

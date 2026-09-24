@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import type { Goal, Broadcast } from "@/types/hockey";
 import { NETWORK_LOGOS } from "@/lib/networkLogos";
@@ -20,6 +21,15 @@ type GameCardProps = {
   goals?: Goal[];
   broadcasts?: Broadcast[];
 };
+
+function formatGameTime(startTimeUTC: string) {
+  if (!startTimeUTC) return "TBD";
+
+  return new Date(startTimeUTC).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 export default function GameCard({
   league,
@@ -219,7 +229,9 @@ export default function GameCard({
   </div>
 ) : null}
 
-      <div className="mt-4 text-sm text-slate-600">{time}</div>
+      <div className="mt-4 text-sm text-slate-600">
+        {formatGameTime(time)}
+      </div>
     </div>
   );
 }

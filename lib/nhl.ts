@@ -75,15 +75,6 @@ function formatSeriesStatus(series?: NhlSeries) {
   return `${leader} leads series ${leaderWins}-${trailingWins}`;
 }
 
-function formatGameTime(startTimeUTC: string) {
-  if (!startTimeUTC) return "TBD";
-
-  return new Date(startTimeUTC).toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 function formatGameStatus(gameState: string) {
   switch (gameState) {
     case "LIVE":
@@ -269,7 +260,7 @@ export async function getNhlGames(date?: string): Promise<HockeyGame[]> {
         homeAbbrev,
         awayLogo: NHL_TEAM_LOGOS[awayAbbrev],
         homeLogo: NHL_TEAM_LOGOS[homeAbbrev],
-        time: formatGameTime(game.startTimeUTC),
+        time: game.startTimeUTC || "",
         status: gameStatus,
         awayScore: game.awayTeam?.score,
         homeScore: game.homeTeam?.score,
