@@ -141,11 +141,6 @@ function selectDay(day: number) {
 })}
 </div>
 
-<p>Days in month: {daysInMonth}</p>
-<p>First day: {firstDayOfMonth}</p>
-
-      <p>Selected date: {selectedDate}</p>
-
       {loading && <p>Loading games...</p>}
 
       {error && <p className="text-red-500">{error}</p>}
