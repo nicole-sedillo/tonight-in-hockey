@@ -8,6 +8,7 @@ import { getFavoriteTeams, toggleFavoriteTeam, clearFavoriteTeams } from "@/lib/
 import { nhlTeams } from "@/lib/nhlTeams";
 import { pwhlTeams } from "@/lib/pwhlTeams";
 import { sendGameNotification } from "@/lib/notifications";
+import { formatDate } from "@/utilities/date";
 
 
 
@@ -87,20 +88,20 @@ export default function HomePage() {
   const [selectedLeague, setSelectedLeague] = useState<"ALL" | "NHL" | "PWHL">("ALL");
   const [favoriteTeams, setFavoriteTeamsState] = useState<string[]>([]);
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [previousGameStates, setPreviousGameStates] = useState<Map<string, string>>(new Map());
   const [favExpanded, setFavExpanded] = useState(false);
-  const formatDate = (date: Date) => {
-    // Format in local timezone, not UTC
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+
+  useEffect(() => {
+    setSelectedDate(new Date());
+  }, []);
+  
 
 const changeDate = (days: number) => {
+  if (!selectedDate) return;
+
   const newDate = new Date(selectedDate);
   newDate.setDate(newDate.getDate() + days);
   setSelectedDate(newDate);
@@ -126,17 +127,19 @@ const handleNotificationToggle = async () => {
 };
 
 useEffect(() => {
+  if (!selectedDate) return;
+
+  const date = formatDate(selectedDate);
+
   async function loadGames() {
-  try {
-    setLoading(true);
-    setError("");
+    try {
+      setLoading(true);
+      setError("");
 
-    const date = formatDate(selectedDate);
-
-    const [nhlRes, pwhlRes] = await Promise.all([
-      fetch(`/api/nhl?date=${date}`),
-      fetch(`/api/pwhl?date=${date}`),
-    ]);
+      const [nhlRes, pwhlRes] = await Promise.all([
+        fetch(`/api/nhl?date=${date}`),
+        fetch(`/api/pwhl?date=${date}`),
+      ]);
 
     if (!nhlRes.ok || !pwhlRes.ok) {
       throw new Error("Failed to load games");
@@ -390,15 +393,22 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
           
           <div className="flex flex-col items-center gap-2">
             <p className="text-lg font-bold text-slate-900">
-              {selectedDate.toLocaleDateString([], {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              })}
+              {selectedDate
+                ? selectedDate.toLocaleDateString([], {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                  })
+                : "Loading..."}
             </p>
             <div className="flex items-center gap-2">
-              <p className="text-xs text-slate-500">{formatDate(selectedDate)}</p>
-              {formatDate(selectedDate) === formatDate(new Date()) && (
+              {selectedDate && (
+                <p className="text-xs text-slate-500">
+                  {formatDate(selectedDate)}
+                </p>
+              )}
+              {selectedDate &&
+                formatDate(selectedDate) === formatDate(new Date()) && (
                 <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
                   Today
                 </span>
@@ -547,7 +557,10 @@ const allFavoriteTeams = [...nhlTeams, ...pwhlTeams];
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                  {formatDate(selectedDate) === formatDate(new Date()) ? "Best Game Tonight" : "Best Game"}
+                  {selectedDate &&
+formatDate(selectedDate) === formatDate(new Date())
+  ? "Best Game Tonight"
+  : "Best Game"}
                 </p>
                 <h2 className="mt-1 text-2xl font-bold text-slate-950">
                   {featuredGame.awayAbbrev || featuredGame.awayTeam} at{" "}
